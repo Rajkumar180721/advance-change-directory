@@ -6,6 +6,7 @@ basePath = os.path.dirname(os.path.realpath(__file__))
 ignore_json = basePath+'/ignore_list.json'
 
 
+
 def findDir(dir_name: str, xclude=['node_modules'], startPath='/home/raj/Documents/'):
     
     exclude = set(['node_modules', 'lib', '__pycache__'])
@@ -33,6 +34,23 @@ def findDir(dir_name: str, xclude=['node_modules'], startPath='/home/raj/Documen
         return detected_dir[input_ind]
     return False
 
+
+
+def read_input(input_text):
+    def complete(text,state):
+        # print(text, state)
+        results = [x for x in ignore_list['volcab'] if x.startswith(text)]
+        return results[state]
+
+    readline.parse_and_bind("tab: complete")
+    readline.parse_and_bind("set colored-completion-prefix on")
+    readline.parse_and_bind("set show-all-if-unmodified on")
+    readline.parse_and_bind("set horizontal-scroll-mode on")
+    readline.set_completer_delims(' ') # this line fixed the *- or Phypen* detection issue
+    readline.set_completer(complete)
+    input_value = input('Enter the name of the directory. Leave empty to exit: ')
+    return input_value
+
 def open_terminal(dir):
     try:
         cmd = 'gnome-terminal --tab --working-directory={}'.format(dir)
@@ -41,6 +59,9 @@ def open_terminal(dir):
         # os.kill(os.getppid(), signal.SIGHUP)
     except:
         print('Unable to access directory ', dir)
+
+
+
 
 def writeIgnoreList(ignore_list: dict):
     with open(ignore_json, mode='w') as outfile:
@@ -65,7 +86,10 @@ if (__name__ == '__main__'):
         writeIgnoreList(ignore_list)
 
     parser = argparse.ArgumentParser(description='advanced change directory')
-
+    parser.add_argument(
+        '--remove_dir', '-r', action='store',
+        help = 'Delete a dir from volcab'
+    )
     parser.add_argument(
         'dir_name', action='store', nargs='*',
         help = 'change the current working directory to passed directory'
@@ -75,7 +99,12 @@ if (__name__ == '__main__'):
     args = vars(parser.parse_args())
 
     output = ''
-    if (args['dir_name']):
+    if args['remove_dir']:
+        ignore_list['volcab'] = [dir for dir in ignore_list['volcab'] if dir != args['remove_dir']]
+        writeIgnoreList(ignore_list)
+        # print(ignore_list)
+
+    elif (args['dir_name']):
         output = findDir(args['dir_name'][0])
         # opens a new tab with specificed path
         if (output):
@@ -87,18 +116,7 @@ if (__name__ == '__main__'):
         else:
             print('unable to find directory')
     else:
-        def complete(text,state):
-            # print(text, state)
-            results = [x for x in ignore_list['volcab'] if x.startswith(text)]
-            return results[state]
-
-        readline.parse_and_bind("tab: complete")
-        readline.parse_and_bind("set colored-completion-prefix on")
-        readline.parse_and_bind("set show-all-if-unmodified on")
-        readline.parse_and_bind("set horizontal-scroll-mode on")
-        readline.set_completer_delims(' ') # this line fixed the *- or Phypen* detection issue
-        readline.set_completer(complete)
-        dir_name = input('Enter the name of the directory. Leave empty to exit: ')
+        dir_name = read_input('Enter the name of the directory. Leave empty to exit: ')
         if (dir_name):
             output = findDir(dir_name)
             # opens a new tab with specificed path
