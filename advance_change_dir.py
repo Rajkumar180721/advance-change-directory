@@ -1,22 +1,39 @@
 
-import os, json, subprocess, argparse, readline
+import os, json, argparse, readline
 # import signal
 
 basePath = os.path.dirname(os.path.realpath(__file__))
 ignore_json = basePath+'/ignore_list.json'
 
+def findDirs(target: str, path: str, exclude: list, detected_dir: list):
+
+    dir_list = os.listdir(path)
+
+    dir_list = [d for d in dir_list if d not in exclude and os.path.isdir(path+d) and not d.startswith('.')]
+
+    detected_dir += [f'{path}{d}/' for d in dir_list if d == target]
+
+    for d in dir_list:
+        findDirs(target, f'{path}{d}/', exclude, detected_dir)
+    
+    return detected_dir
 
 
-def findDir(dir_name: str, xclude=['node_modules'], startPath='/home/raj/Documents/'):
+def getDirectories(dir_name: str, xclude=['node_modules'], startPath='/home/raj/Documents/'):
     
     exclude = set(['node_modules', 'lib', '__pycache__'])
-    detected_dir = []
-    for dirpath, dirnames, _ in os.walk(startPath):
-        dirnames[:] = [d for d in dirnames if d not in exclude and not d.startswith('.')]
-        for dir in dirnames:
-            if dir == dir_name:
-                dir = os.path.join(dirpath, dir)
-                detected_dir.append(dir)
+    # detected_dir = []
+
+    detected_dir = findDirs(dir_name, startPath, exclude, [])
+
+    # print(detected_dir)
+    
+    # for dirpath, dirnames, _ in os.walk(startPath):
+    #     dirnames[:] = [d for d in dirnames if d not in exclude and not d.startswith('.')]
+    #     for dir in dirnames:
+    #         if dir == dir_name:
+    #             dir = os.path.join(dirpath, dir)
+    #             detected_dir.append(dir)
     
     if (len(detected_dir) == 1):
         return detected_dir[0]
@@ -102,10 +119,9 @@ if (__name__ == '__main__'):
     if args['remove_dir']:
         ignore_list['volcab'] = [dir for dir in ignore_list['volcab'] if dir != args['remove_dir']]
         writeIgnoreList(ignore_list)
-        # print(ignore_list)
 
     elif (args['dir_name']):
-        output = findDir(args['dir_name'][0])
+        output = getDirectories(args['dir_name'][0])
         # opens a new tab with specificed path
         if (output):
             newVolcab = ignore_list['volcab']
@@ -118,7 +134,7 @@ if (__name__ == '__main__'):
     else:
         dir_name = read_input('Enter the name of the directory. Leave empty to exit: ')
         if (dir_name):
-            output = findDir(dir_name)
+            output = getDirectories(dir_name)
             # opens a new tab with specificed path
             if (output):
                 newVolcab = ignore_list['volcab']
