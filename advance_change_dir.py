@@ -21,7 +21,7 @@ def findDirs(target: str, path: str, exclude: list, detected_dir: list):
 
 def getDirectories(dir_name: str, xclude=['node_modules'], startPath='/home/raj/Documents/'):
     
-    exclude = set(['node_modules', 'lib', '__pycache__'])
+    exclude = set(xclude)
     # detected_dir = []
 
     detected_dir = findDirs(dir_name, startPath, exclude, [])
@@ -43,7 +43,8 @@ def getDirectories(dir_name: str, xclude=['node_modules'], startPath='/home/raj/
             print('{0}) {1}'.format(i, dir))
         input_ind = ''
         while(1):
-            input_ind = int(input('Enter the index to change dir (Ctrl+c - exit):'))
+            input_ind = input('Enter the index to change dir (Ctrl+c - exit):')
+            if (input_ind): input_ind = int(input_ind)
             if (input_ind < 0 or input_ind > len(detected_dir) -1):
                 print('\tUnmatched index')
             else:
@@ -121,7 +122,7 @@ if (__name__ == '__main__'):
         writeIgnoreList(ignore_list)
 
     elif (args['dir_name']):
-        output = getDirectories(args['dir_name'][0])
+        output = getDirectories(args['dir_name'][0], xclude=ignore_list['ignore'])
         # opens a new tab with specificed path
         if (output):
             newVolcab = ignore_list['volcab']
@@ -134,7 +135,7 @@ if (__name__ == '__main__'):
     else:
         dir_name = read_input('Enter the name of the directory. Leave empty to exit: ')
         if (dir_name):
-            output = getDirectories(dir_name)
+            output = getDirectories(dir_name, xclude=ignore_list['ignore'])
             # opens a new tab with specificed path
             if (output):
                 newVolcab = ignore_list['volcab']
